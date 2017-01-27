@@ -2,8 +2,10 @@
  * Module dependencies
  */
 
-var stream = require('stream');
-var mongodb = require('mongodb');
+var stream = require('stream'),
+    _ = require('lodash'),
+    mongodb = require('mongodb')
+;
 
 
 var MongoClient = mongodb.MongoClient,
