@@ -7,10 +7,21 @@ var stream = require('stream'),
     mongodb = require('mongodb')
 ;
 
+var db;
 
-var MongoClient = mongodb.MongoClient,
-    GridStore = mongodb.GridStore
-;
+function getDb(url, options, cb) {
+  if (db === undefined) {
+    return mongodb.MongoClient.connect(url, options, function (err, _db) {
+      if (err) return cb(err);
+
+      db = _db;
+      return cb(null, db);
+    })
+  }
+  else {
+    return cb(null, db);
+  }
+}
 
 /**
  * skipper-adapter-gridfs
@@ -28,18 +39,18 @@ module.exports = function SkipperGridFS (globalOpts) {
     ls: function(dirname, cb) {
       var options = globalOpts;
 
-      MongoClient.connect(options.url, options, function (err, db) {
+      getDb(options.url, options, function (err, db) {
         if (err) {
-          if (db) db.close();
-          return cb ? cb(err) : undefined;
+          //if (db) db.close();
+          return cb(err);
         }
 
         var bucket = new mongodb.GridFSBucket(db, { bucketName: options.bucket});
 
         bucket.find({'metadata.dirname': dirname}).toArray(function(err, docs) {
           if (err) {
-            db.close();
-            return cb ? cb(err) : undefined;
+            //db.close();
+            return cb(err);
           }
 
           return cb(null, docs);
@@ -50,10 +61,10 @@ module.exports = function SkipperGridFS (globalOpts) {
     read: function(fd, cb) {
       var options = globalOpts;
 
-      MongoClient.connect(options.url, options, function(err, db) {
+      getDb(options.url, options, function(err, db) {
         if (err) {
-          if (db) db.close();
-          return cb ? cb(err) : undefined;
+          //if (db) db.close();
+          return cb(err);
         }
 
         var bucket = new mongodb.GridFSBucket(db, { bucketName: options.bucket});
@@ -61,11 +72,11 @@ module.exports = function SkipperGridFS (globalOpts) {
         var stream = bucket.openDownloadStreamByName(fd);
 
         stream.on('error', function(err) {
-          db.close();
+          //db.close();
         });
 
         stream.on('close', function() {
-          db.close();
+          //db.close();
         })
 
         return cb(null, stream);
@@ -76,10 +87,10 @@ module.exports = function SkipperGridFS (globalOpts) {
     rm: function(fd, cb) {
       var options = globalOpts;
 
-      MongoClient.connect(options.url, options, function(err, db) {
+      getDb(options.url, options, function(err, db) {
         if (err) {
-          if (db) db.close();
-          return cb ? cb(err) : undefined;
+          //if (db) db.close();
+          return cb(err);
         }
 
         var bucket = new mongodb.GridFSBucket(db, { bucketName: options.bucket});
@@ -89,7 +100,7 @@ module.exports = function SkipperGridFS (globalOpts) {
         bucket.delete(id, function(err) {
           if (err) return cb(err);
 
-          db.close();
+          //db.close();
 
           return cb(null);
         })
@@ -115,7 +126,7 @@ module.exports = function SkipperGridFS (globalOpts) {
 
       receiver__.once('error', function (err, db) {
         // console.log('ERROR ON RECEIVER__ ::',err);
-        if (db) db.close();
+        //if (db) db.close();
       });
 
       // This `_write` method is invoked each time a new file is pumped in
@@ -134,7 +145,7 @@ module.exports = function SkipperGridFS (globalOpts) {
           // Skipper core should gc() for us.
         });
 
-        MongoClient.connect(options.url, options, function(err, db) {
+        getDb(options.url, options, function(err, db) {
           if (err) {
             // console.log(('Receiver: Error writing `' + __newFile.filename + '`:: ' + require('util').inspect(err) + ' :: Cancelling upload and cleaning up already-written bytes...').red);
             receiver__.emit('error', err, db);
@@ -158,7 +169,7 @@ module.exports = function SkipperGridFS (globalOpts) {
           // Bind `finish` event for when the file has been completely written.
           outs__.once('finish', function () {
             __newFile.extra = {fileId: outs__.id};
-            db.close();
+            //db.close();
             done();
           });
 
