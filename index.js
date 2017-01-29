@@ -94,6 +94,8 @@ module.exports = function SkipperGridFS(globalOpts) {
   function rm(fd, cb) {
     var options = globalOpts;
 
+    if (!fd) return cb('need id of file');
+
     getDb(options.url, options, function(err, db) {
       if (err) {
         //if (db) db.close();
@@ -102,9 +104,9 @@ module.exports = function SkipperGridFS(globalOpts) {
 
       var bucket = new mongodb.GridFSBucket(db, { bucketName: options.bucket });
 
-      let id = fd; // TODO : id should be ObjectID. try to get it if not;
+      var ObjectID = mongodb.ObjectID;
 
-      bucket.delete(id, function(err) {
+      bucket.delete(new ObjectID(fd), function(err) {
         if (err) return cb(err);
 
         //db.close();
@@ -151,7 +153,7 @@ module.exports = function SkipperGridFS(globalOpts) {
         // Skipper core should gc() for us.
       });
 
-      write(fd, function(err, writeStream)) {
+      write(fd, function(err, writeStream) {
         if (err) {
           // console.log(('Receiver: Error writing `' + __newFile.filename + '`:: ' + require('util').inspect(err) + ' :: Cancelling upload and cleaning up already-written bytes...').red);
           receiver__.emit('error', err);
