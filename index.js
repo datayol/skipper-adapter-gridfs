@@ -174,7 +174,7 @@ module.exports = function SkipperGridFS(globalOpts) {
 
         // Bind `finish` event for when the file has been completely written.
         outs__.once('finish', function () {
-          __newFile.extra = {id: outs__.id};
+          __newFile.extra = {id: outs__.id.toString()};
           done();
         });
 
