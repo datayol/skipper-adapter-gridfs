@@ -3,7 +3,6 @@
  */
 
 var stream = require('stream'),
-    _ = require('lodash'),
     mongodb = require('mongodb')
 ;
 
@@ -124,8 +123,7 @@ module.exports = function SkipperGridFS(globalOpts) {
    * @return {Stream.Writable}
    */
   function receive(options) {
-    options = options || {};
-    options = _.defaults(options, globalOpts);
+    options = Object.assign({}, globalOpts, options);
 
     // Build an instance of a writable stream in object mode.
     var receiver__ = stream.Writable({
